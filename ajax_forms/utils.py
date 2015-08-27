@@ -2,7 +2,6 @@
 # Licensed under the terms of the BSD License (see LICENSE)
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.urlresolvers import reverse
-from django.core.cache import cache
 from django.forms import BaseForm
 from django.utils.datastructures import SortedDict
 from django.utils.encoding import force_unicode
@@ -23,13 +22,6 @@ class LazyEncoder(DjangoJSONEncoder):
 
 json_serializer = LazyEncoder()
 
-def _create_cache_key(form):
-    """
-    Generate a cache key based on the form.
-    """
-    cls = form.__class__
-    return 'ajax_forms:' + cls.__module__ + '.' + cls.__name__
-
 def form_to_json(form):
     """
     Create a JSON summary of a form for use by client side validation.
@@ -37,11 +29,6 @@ def form_to_json(form):
     if not isinstance(form, BaseForm):
         raise TypeError(_("Expected Django Form instance"))
 
-    # Check cache first
-    result = getattr(form.__class__, '_json', None)
-    if result:
-        return result   
-    
     ajax_directives = getattr(form, 'Ajax', None)
 
     # Generate ajax fields
@@ -87,7 +74,4 @@ def form_to_json(form):
         except KeyError:
             raise Exception(_('Field "%s" not found in this form') % name)
 
-    # Generate result and store in cache
-    result = json_serializer.encode(ajax_fields)
-    setattr(form.__class__, '_json', result)
-    return result
+    return json_serializer.encode(ajax_fields)
