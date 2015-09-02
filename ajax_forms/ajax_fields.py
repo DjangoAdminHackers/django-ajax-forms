@@ -166,6 +166,9 @@ class AjaxIntegerField(AjaxField):
         self.add_rule('is_integer', True, 'invalid')
         super(AjaxIntegerField, self).parse()
 
+        self.add_rule('max_value', cast=str)
+        self.add_rule('min_value', cast=str)
+
 register(forms.IntegerField, AjaxIntegerField)
 
 
